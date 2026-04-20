@@ -6,7 +6,12 @@ import (
 	"time"
 )
 
-func worker(url string, wg *sync.WaitGroup, resultChan chan string) {
+type Result struct {
+	Value string
+	Err   error
+}
+
+func worker(url string, wg *sync.WaitGroup, resultChan chan Result) {
 	defer wg.Done() // signal that this goroutine is done when the function returns
 
 	time.Sleep(time.Millisecond * 50)
@@ -14,15 +19,17 @@ func worker(url string, wg *sync.WaitGroup, resultChan chan string) {
 	fmt.Printf("Downloaded / Processed: %s \n", url)
 
 	// write by workers in chan
-	resultChan <- url
+	resultChan <- Result{Value: url, Err: nil}
 }
 
 func main() {
+
+	// Fan out / Fan in pattern
 	// decration of wait group
 	var wg sync.WaitGroup
 
 	// create a buffered channel to hold the results
-	resultChan := make(chan string, 5)
+	resultChan := make(chan Result, 5)
 
 	// add the number of goroutines to wait for
 	wg.Add(5)
